@@ -1,0 +1,23 @@
+[package]
+name = "hyperliquid-protocol"
+description = "Codecs for the Hyperliquid P2P protocol and HyperCore signed action bundles"
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+bytes.workspace = true
+lz4_flex.workspace = true
+serde.workspace = true
+sha3.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

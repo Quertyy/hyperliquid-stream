@@ -1,0 +1,31 @@
+[package]
+name = "hyperliquid-stream"
+description = "Stream the Hyperliquid mempool and blocks directly from P2P peers"
+readme = "../../README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+hyperliquid-protocol.workspace = true
+bytes.workspace = true
+futures-core.workspace = true
+metrics.workspace = true
+metrics-derive.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+lz4_flex.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "signal", "test-util"] }
+tracing-subscriber.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,27 @@
+[package]
+name = "hyperliquid-ws"
+description = "WebSocket subscriptions with bounded, serialize-once fan-out"
+readme = "../../README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+futures-util.workspace = true
+metrics.workspace = true
+metrics-derive.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+tracing.workspace = true
+zstd.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[lints]
+workspace = true

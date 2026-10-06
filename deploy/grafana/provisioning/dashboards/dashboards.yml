@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: hl-stream
+    folder: Hyperliquid
+    type: file
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards
