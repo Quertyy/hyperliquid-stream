@@ -15,7 +15,7 @@ are committed in a block. No node, no API key.
 
 ```sh
 cargo install --path bin/hl-stream
-hl-stream --peers-cache peers.json
+hl-stream stream --peers-cache peers.json
 ```
 
 Peers only stream to clients they can reach: **open inbound TCP ports 4001
@@ -25,8 +25,9 @@ for all options.
 
 ## Output
 
-`hl-stream` writes one JSON record per line: one per action by default,
-`--format transactions` or `--format summary` for one per transaction.
+`hl-stream stream` writes one JSON record per line: one per action by
+default, `--format transactions` or `--format summary` for one per
+transaction.
 `--kinds order,cancel,evmRawTx` filters by action kind, and `--blocks` adds
 blocks.
 

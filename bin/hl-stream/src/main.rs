@@ -25,33 +25,12 @@ struct Cli {
     #[command(flatten)]
     telemetry: telemetry::TelemetryArgs,
     #[command(subcommand)]
-    command: Option<Command>,
-    /// Options of `stream`, the default command, given without it.
-    #[command(flatten)]
-    stream: StreamArgs,
-}
-
-impl Cli {
-    /// The command to run: `stream` with the top-level options when no
-    /// subcommand is given.
-    fn run_command(command: Option<Command>, stream: StreamArgs) -> Result<Command, clap::Error> {
-        match command {
-            None => Ok(Command::Stream(stream)),
-            Some(_) if stream != StreamArgs::default() => {
-                use clap::CommandFactory;
-                Err(<Self as CommandFactory>::command().error(
-                    clap::error::ErrorKind::ArgumentConflict,
-                    "stream options go after `stream`, or without a subcommand",
-                ))
-            }
-            Some(command) => Ok(command),
-        }
-    }
+    command: Command,
 }
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Write the mempool, and optionally blocks, to stdout as JSON lines (default).
+    /// Write the mempool, and optionally blocks, to stdout as JSON lines.
     Stream(StreamArgs),
     /// Serve the mempool and blocks to WebSocket subscribers.
     Serve(serve::ServeArgs),
@@ -92,7 +71,7 @@ struct NetworkArgs {
     retention: u64,
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Args)]
+#[derive(Debug, Args)]
 struct StreamArgs {
     /// Record format.
     #[arg(long, value_enum, default_value_t = Format::Actions)]
@@ -122,13 +101,12 @@ enum Format {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let command = Cli::run_command(cli.command, cli.stream).unwrap_or_else(|error| error.exit());
     telemetry::init(&cli.telemetry)?;
     let config = cli.network.config().await?;
     let mut client = Client::connect(config)
         .await
         .context("starting the stream")?;
-    let result = match command {
+    let result = match cli.command {
         Command::Stream(args) => output::stream(&mut client, &args).await,
         Command::Serve(args) => serve::serve(&mut client, &args).await,
     };
@@ -224,32 +202,27 @@ mod tests {
         Cli::command().debug_assert();
     }
 
-    fn command(args: &[&str]) -> Result<Command, clap::Error> {
-        let cli = Cli::try_parse_from(std::iter::once("hl-stream").chain(args.iter().copied()))?;
-        Cli::run_command(cli.command, cli.stream)
+    fn parse(args: &[&str]) -> Result<Cli, clap::Error> {
+        Cli::try_parse_from(std::iter::once("hl-stream").chain(args.iter().copied()))
     }
 
     #[test]
-    fn stream_options_work_with_or_without_the_subcommand() {
-        let expected = StreamArgs {
-            kinds: vec!["evmRawTx".to_owned()],
-            ..StreamArgs::default()
-        };
+    fn network_options_go_before_or_after_the_command() {
         for args in [
-            &["--peers-cache", "p.json", "--kinds", "evmRawTx"][..],
-            &["--peers-cache", "p.json", "stream", "--kinds", "evmRawTx"],
+            &["--peers-cache", "p.json", "stream", "--kinds", "evmRawTx"][..],
             &["stream", "--kinds", "evmRawTx", "--peers-cache", "p.json"],
         ] {
-            let Ok(Command::Stream(stream)) = command(args) else {
+            let cli = parse(args).unwrap();
+            assert_eq!(cli.network.peers_cache, Some(PathBuf::from("p.json")));
+            let Command::Stream(stream) = cli.command else {
                 panic!("{args:?} should stream");
             };
-            assert_eq!(stream, expected, "{args:?}");
+            assert_eq!(stream.kinds, ["evmRawTx"]);
         }
-        assert!(matches!(
-            command(&["--peers-cache", "p.json", "serve"]),
-            Ok(Command::Serve(_))
-        ));
-        assert!(command(&["--kinds", "evmRawTx", "serve"]).is_err());
+        assert!(
+            parse(&["--kinds", "evmRawTx"]).is_err(),
+            "a command is required"
+        );
     }
 
     #[tokio::test]
