@@ -17,7 +17,7 @@ use metrics::{Counter, Gauge, Histogram};
 use metrics_derive::Metrics;
 use std::{
     collections::HashMap,
-    sync::{Mutex, PoisonError},
+    sync::{Mutex, PoisonError, atomic::AtomicBool},
 };
 
 /// Prefix of every metric name.
@@ -66,6 +66,9 @@ pub(crate) struct DecodeMetrics {
     /// Decoding failures by stage.
     #[metric(rename = "errors_total", labels = [("stage", "message")])]
     pub(crate) message_errors: Counter,
+    /// Decoding failures by stage.
+    #[metric(rename = "errors_total", labels = [("stage", "unknown_message")])]
+    pub(crate) unknown_messages: Counter,
     /// Decoding failures by stage.
     #[metric(rename = "errors_total", labels = [("stage", "bundle")])]
     pub(crate) bundle_errors: Counter,
@@ -191,6 +194,8 @@ pub(crate) struct SessionMetrics {
     pub(crate) transactions: TransactionMetrics,
     pub(crate) decode: DecodeMetrics,
     pub(crate) traffic: TrafficMetrics,
+    /// Whether an unknown message type was already reported in the logs.
+    pub(crate) unknown_message_reported: AtomicBool,
     /// Counter handles by action kind, created on first use.
     kinds: Mutex<HashMap<String, Counter>>,
 }

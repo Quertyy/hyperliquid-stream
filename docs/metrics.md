@@ -31,7 +31,7 @@ facade, declared with `metrics-derive`. Names are relative
 | `hl_stream_transactions_pending` | gauge | Seen but not yet committed |
 | `hl_stream_transactions_inclusion_delay_seconds` | histogram | Mempool to committing block |
 | `hl_stream_actions_total{kind}` | counter | Actions of first-seen transactions |
-| `hl_stream_decode_errors_total{stage}` | counter | Undecodable messages, bundles or actions |
+| `hl_stream_decode_errors_total{stage}` | counter | Undecodable messages, bundles or actions, and messages of unknown type (`unknown_message`), a sign of a protocol change |
 | `hl_stream_blocks_total` | counter | Live blocks |
 | `hl_stream_blocks_stale_total` | counter | Blocks replayed from a peer's backlog |
 | `hl_stream_blocks_transactions_total` | counter | Transactions committed by live blocks |

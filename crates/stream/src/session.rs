@@ -18,11 +18,11 @@ use hyperliquid_protocol::{
 };
 use std::{
     net::SocketAddr,
-    sync::Arc,
+    sync::{Arc, atomic::Ordering},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::{mpsc, oneshot};
-use tracing::{Instrument, debug, info_span};
+use tracing::{Instrument, debug, info_span, warn};
 
 /// A message from a session to the supervisor.
 #[derive(Debug)]
@@ -193,8 +193,21 @@ async fn stream(
                 header,
                 received_at_ms,
             },
+            // A message type this version does not know: a node upgrade may
+            // have changed the protocol, so make it visible.
             Ok(message) => {
-                debug!(?message, "skipping unknown message");
+                metrics.decode.unknown_messages.increment(1);
+                if metrics
+                    .unknown_message_reported
+                    .swap(true, Ordering::Relaxed)
+                {
+                    debug!(?message, "skipping unknown message");
+                } else {
+                    warn!(
+                        ?message,
+                        "skipping a message of unknown type; the peer protocol may have changed"
+                    );
+                }
                 continue;
             }
             Err(error) => {

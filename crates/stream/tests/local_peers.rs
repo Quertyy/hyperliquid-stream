@@ -104,6 +104,8 @@ async fn emits_each_transaction_once_and_tracks_its_block() {
     let peer_a = peer(vec![frame::encode(&transaction_message(&first)).unwrap()]).await;
     let peer_b = peer(vec![
         lz4_frame(&transaction_message(&first)),
+        // A message type a future node version might add: skipped.
+        frame::encode(&[7, 1, 2]).unwrap(),
         frame::encode(&transaction_message(&second)).unwrap(),
         frame::encode(&block_message(&[hash.0])).unwrap(),
     ])
